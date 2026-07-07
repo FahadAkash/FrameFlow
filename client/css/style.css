@@ -254,12 +254,14 @@ h2 { font-size: 13px; font-weight: 600; }
 .apply-btn:active { transform: translateY(1px); }
 .apply-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 
-/* Toast */
+/* Toast — slides down from the top, always fully visible, above everything */
 .toast {
-    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(20px);
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-18px);
     background: #0b0e13; border: 1px solid var(--stroke-2); color: var(--text);
-    padding: 10px 16px; border-radius: 8px; font-size: 12px; opacity: 0; pointer-events: none;
-    transition: opacity .2s, transform .2s; max-width: 90%; text-align: center;
+    padding: 10px 16px; border-radius: 9px; font-size: 12px; line-height: 1.35;
+    opacity: 0; pointer-events: none; z-index: 200;
+    transition: opacity .2s, transform .2s; max-width: calc(100% - 24px); text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.err { border-color: #ef4444; }
