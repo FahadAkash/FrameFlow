@@ -19,6 +19,8 @@
         applyBtn: document.getElementById("applyBtn"),
         densWrap: document.getElementById("densWrap"),
         densInput: document.getElementById("densInput"),
+        densMinus: document.getElementById("densMinus"),
+        densPlus: document.getElementById("densPlus"),
         easeType: document.getElementById("easeType"),
         replayBtn: document.getElementById("replayBtn"),
         toast: document.getElementById("toast")
@@ -185,6 +187,18 @@
         r.addEventListener("change", syncDensVisibility);
     });
     syncDensVisibility();
+
+    // custom stepper for the keyframe-count field (native spinner is hidden)
+    function clampDens(v) { return Math.max(4, Math.min(120, v)); }
+    function nudgeDens(delta) {
+        var v = clampDens((parseInt(els.densInput.value, 10) || 24) + delta);
+        els.densInput.value = v;
+    }
+    els.densMinus.addEventListener("click", function () { nudgeDens(-4); });
+    els.densPlus.addEventListener("click", function () { nudgeDens(4); });
+    els.densInput.addEventListener("change", function () {
+        els.densInput.value = clampDens(parseInt(els.densInput.value, 10) || 24);
+    });
 
     // ---- apply --------------------------------------------------------------
     els.applyBtn.addEventListener("click", function () {

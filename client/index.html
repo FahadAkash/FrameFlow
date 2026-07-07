@@ -75,7 +75,12 @@
             <div class="apply-mode">
                 <label class="radio"><input type="radio" name="applyMode" value="native" checked /><span>Ease my keyframes</span><em class="ease-type" id="easeType">In-Out</em></label>
                 <label class="radio"><input type="radio" name="applyMode" value="bake" /><span>Bake exact curve</span></label>
-                <span class="dens" id="densWrap"><input id="densInput" type="number" min="4" max="120" value="24" /> kf</span>
+                <span class="dens" id="densWrap">
+                    <button class="step" id="densMinus" type="button" tabindex="-1" aria-label="Fewer keyframes">&minus;</button>
+                    <input id="densInput" type="number" min="4" max="120" value="24" />
+                    <button class="step" id="densPlus" type="button" tabindex="-1" aria-label="More keyframes">+</button>
+                    <span class="dens-label">kf</span>
+                </span>
             </div>
             <button class="apply-btn" id="applyBtn">Apply to selection</button>
         </footer>
