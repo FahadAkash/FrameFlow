@@ -230,7 +230,7 @@
         var payloadStr = JSON.stringify(payload);
         els.applyBtn.disabled = true;
         els.applyBtn.textContent = "Applying…";
-        cs.evalScript("MotionEase.apply(" + JSON.stringify(payloadStr) + ")", function (res) {
+        cs.evalScript("FrameFlow.apply(" + JSON.stringify(payloadStr) + ")", function (res) {
             els.applyBtn.disabled = false;
             els.applyBtn.textContent = "Apply to selection";
             handleHostResult(res);
@@ -255,7 +255,7 @@
     function restoreLast() {
         if (!hostReady || els.undoBtn.disabled) return;
         els.undoBtn.disabled = true;
-        cs.evalScript("MotionEase.restoreLast()", function (res) {
+        cs.evalScript("FrameFlow.restoreLast()", function (res) {
             var r; try { r = JSON.parse(res); } catch (e) { r = null; }
             if (!r) { toast("Restore error", "err"); return; }
             toast(r.message || (r.ok ? "Restored" : "Nothing to undo"), r.ok ? "ok" : "err");
@@ -282,7 +282,7 @@
 
     function pollSelection() {
         if (!hostReady) return;
-        cs.evalScript("MotionEase.scanSelection()", function (res) {
+        cs.evalScript("FrameFlow.scanSelection()", function (res) {
             var r; try { r = JSON.parse(res); } catch (e) { r = null; }
             if (!r) return;
 
@@ -325,15 +325,15 @@
             els.selectionHint.textContent = "Open this panel inside Premiere Pro to apply curves.";
             return;
         }
-        cs.evalScript("MotionEase.ping()", function (res) {
-            var ok = String(res).indexOf("MotionEase") >= 0;
+        cs.evalScript("FrameFlow.ping()", function (res) {
+            var ok = String(res).indexOf("FrameFlow") >= 0;
             els.status.className = ok ? "status ok" : "status err";
             els.status.innerHTML = '<span class="dot"></span> ' + (ok ? "Connected" : "Host not responding");
             if (ok) {
                 pollSelection();
                 setInterval(pollSelection, 1500);
                 // sync undo button with any history the host still holds
-                cs.evalScript("MotionEase.undoCount()", function (c) {
+                cs.evalScript("FrameFlow.undoCount()", function (c) {
                     setUndoEnabled(parseInt(c, 10) > 0);
                 });
             }

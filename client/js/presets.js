@@ -19,7 +19,7 @@
         { name: "Snap",           cp: [0.90, 0.00, 0.10, 1.00] }
     ];
 
-    var STORAGE_KEY = "motionease.userpresets.v1";
+    var STORAGE_KEY = "frameflow.userpresets.v1";
 
     function loadUser() {
         try {

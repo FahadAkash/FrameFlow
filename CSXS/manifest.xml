@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionManifest Version="9.0"
-    ExtensionBundleId="com.aigeolab.motionease"
-    ExtensionBundleName="MotionEase"
+    ExtensionBundleId="com.aigeolab.frameflow"
+    ExtensionBundleName="FrameFlow"
     ExtensionBundleVersion="1.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <ExtensionList>
-        <Extension Id="com.aigeolab.motionease.panel" Version="1.0.0" />
+        <Extension Id="com.aigeolab.frameflow.panel" Version="1.0.0" />
     </ExtensionList>
 
     <ExecutionEnvironment>
@@ -23,11 +23,11 @@
     </ExecutionEnvironment>
 
     <DispatchInfoList>
-        <Extension Id="com.aigeolab.motionease.panel">
+        <Extension Id="com.aigeolab.frameflow.panel">
             <DispatchInfo>
                 <Resources>
                     <MainPath>./client/index.html</MainPath>
-                    <ScriptPath>./host/MotionEase.jsx</ScriptPath>
+                    <ScriptPath>./host/FrameFlow.jsx</ScriptPath>
                     <CEFCommandLine>
                         <Parameter>--enable-nodejs</Parameter>
                         <Parameter>--mixed-context</Parameter>
@@ -38,7 +38,7 @@
                 </Lifecycle>
                 <UI>
                     <Type>Panel</Type>
-                    <Menu>MotionEase Graph Editor</Menu>
+                    <Menu>FrameFlow Graph Editor</Menu>
                     <Geometry>
                         <Size>
                             <Height>640</Height>

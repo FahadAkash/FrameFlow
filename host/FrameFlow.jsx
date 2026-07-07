@@ -1,10 +1,10 @@
 /**********************************************************************
- * MotionEase.jsx — ExtendScript host for the MotionEase panel.
+ * FrameFlow.jsx — ExtendScript host for the FrameFlow panel.
  *
  * Exposes three entry points the panel calls via CSInterface.evalScript:
- *   MotionEase.ping()               -> "MotionEase <version>"
- *   MotionEase.getSelectionInfo()   -> JSON { clips, sequence }
- *   MotionEase.apply(payloadJson)   -> JSON { ok, applied, message, details }
+ *   FrameFlow.ping()               -> "FrameFlow <version>"
+ *   FrameFlow.getSelectionInfo()   -> JSON { clips, sequence }
+ *   FrameFlow.apply(payloadJson)   -> JSON { ok, applied, message, details }
  *
  * apply() reads the first & last keyframe of each selected property, then
  * bakes a dense set of keyframes between them following the shaped curve.
@@ -14,7 +14,7 @@
 
 //@include "./lib/json2.jsx"
 
-var MotionEase = (function () {
+var FrameFlow = (function () {
     "use strict";
 
     var VERSION = "1.0.0";
@@ -536,7 +536,7 @@ var MotionEase = (function () {
     // ---- public API ------------------------------------------------------
 
     function ping() {
-        return "MotionEase " + VERSION;
+        return "FrameFlow " + VERSION;
     }
 
     function getSelectionInfo() {
@@ -703,8 +703,8 @@ var MotionEase = (function () {
 })();
 
 // Expose bare functions too, in case evalScript targets the global scope.
-function ME_ping() { return MotionEase.ping(); }
-function ME_getSelectionInfo() { return MotionEase.getSelectionInfo(); }
-function ME_scanSelection() { return MotionEase.scanSelection(); }
-function ME_apply(p) { return MotionEase.apply(p); }
-function ME_restoreLast() { return MotionEase.restoreLast(); }
+function FF_ping() { return FrameFlow.ping(); }
+function FF_getSelectionInfo() { return FrameFlow.getSelectionInfo(); }
+function FF_scanSelection() { return FrameFlow.scanSelection(); }
+function FF_apply(p) { return FrameFlow.apply(p); }
+function FF_restoreLast() { return FrameFlow.restoreLast(); }

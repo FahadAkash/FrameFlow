@@ -1,4 +1,4 @@
-# MotionEase — build a signed .zxp for distribution.
+# FrameFlow — build a signed .zxp for distribution.
 #
 # Requires Adobe's ZXPSignCmd (free): https://github.com/Adobe-CEP/CEP-Resources
 #   -> ZXPSignCMD/  (download the .exe, put it on PATH or pass -SignCmd)
@@ -12,17 +12,17 @@
 
 param(
     [string]$SignCmd  = "ZXPSignCmd",
-    [string]$Password = "motionease",
+    [string]$Password = "frameflow",
     [string]$Org      = "AIGeoLab",
-    [string]$CommonName = "MotionEase by Fahad Akash"
+    [string]$CommonName = "FrameFlow by Fahad Akash"
 )
 
 $ErrorActionPreference = "Stop"
 $root  = $PSScriptRoot
 $dist  = Join-Path $root "dist"
-$stage = Join-Path ([System.IO.Path]::GetTempPath()) "motionease-zxp-stage"
+$stage = Join-Path ([System.IO.Path]::GetTempPath()) "frameflow-zxp-stage"
 $cert  = Join-Path $root "cert.p12"
-$zxp   = Join-Path $dist "MotionEase-1.0.zxp"
+$zxp   = Join-Path $dist "FrameFlow-1.0.zxp"
 
 # resolve ZXPSignCmd
 $cmd = (Get-Command $SignCmd -ErrorAction SilentlyContinue).Source

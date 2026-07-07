@@ -1,4 +1,4 @@
-# MotionEase — a real graph editor for Premiere Pro
+# FrameFlow — a real graph editor for Premiere Pro
 
 **An After Effects–style value & speed graph, dropped right into Premiere Pro.**
 Bend the bezier, drop it on anything keyframeable, and get motion that actually moves.
@@ -15,7 +15,7 @@ Premiere never gave you a real graph editor. So your motion looks stiff:
 - **You're guessing the curve** — dragging keyframe handles blind, scrubbing back, nudging again.
 - **AE round-trips kill you** — the one app with a real graph editor is a *whole other app*.
 
-MotionEase puts a **draggable bezier curve** right in Premiere. You shape the interpolation,
+FrameFlow puts a **draggable bezier curve** right in Premiere. You shape the interpolation,
 the motion responds live, and one click bakes that exact curve onto your keyframes — Position,
 Scale, Rotation, Opacity, or any keyframed effect property.
 
@@ -23,11 +23,11 @@ Scale, Rotation, Opacity, or any keyframed effect property.
 
 ## What it is (and how it runs)
 
-MotionEase is a **CEP panel** — the same extension technology every Premiere/After Effects
+FrameFlow is a **CEP panel** — the same extension technology every Premiere/After Effects
 panel uses. It runs **inside** Premiere Pro (Window → Extensions), **not** in a web browser.
 
 - The UI (`client/`) is HTML/CSS/JS because Premiere renders panels in an embedded Chromium.
-- A small ExtendScript host (`host/MotionEase.jsx`) is what actually reads and writes your keyframes.
+- A small ExtendScript host (`host/FrameFlow.jsx`) is what actually reads and writes your keyframes.
 
 The two talk over CEP's `evalScript` bridge.
 
@@ -56,7 +56,7 @@ with speed + influence) — that's how AE tools like *Flow* shape a curve with j
 keyframes. **Premiere's scripting API has no equivalent** — there is no way to script keyframe
 influence. This is a hard platform limitation, not a bug.
 
-So MotionEase does the one thing that *does* reproduce an exact curve in Premiere: it **bakes
+So FrameFlow does the one thing that *does* reproduce an exact curve in Premiere: it **bakes
 keyframes** that sample your curve. The result is the exact value graph you drew — including
 overshoot and anticipation — on any keyframeable property.
 
@@ -73,24 +73,24 @@ To keep that tidy and reliable, the baker:
   segment you want, then Apply.
 - **Sets Bezier interpolation** on every baked keyframe so the motion is smooth.
 - **Handles Premiere's time formats** — keyframe times come back as ticks or seconds depending
-  on the version; MotionEase detects and matches the format so writes always land.
+  on the version; FrameFlow detects and matches the format so writes always land.
 
 ---
 
 ## Install (for development / your own machine)
 
-1. Make sure you have the whole `MotionEase` folder (`CSXS/`, `client/`, `host/`).
+1. Make sure you have the whole `FrameFlow` folder (`CSXS/`, `client/`, `host/`).
 2. **Windows** — right-click **`install-windows.ps1`** → *Run with PowerShell*
    (or `powershell -ExecutionPolicy Bypass -File install-windows.ps1`).
    **macOS** — `chmod +x install-mac.command`, then double-click it.
 3. **Fully quit and relaunch** Premiere Pro.
-4. **Window → Extensions → MotionEase Graph Editor.**
+4. **Window → Extensions → FrameFlow Graph Editor.**
 
 The installer enables CEP *debug mode* (required to load an unsigned panel) and copies the
 extension into your per-user Adobe CEP folder:
 
-- Windows: `%APPDATA%\Adobe\CEP\extensions\com.aigeolab.motionease`
-- macOS: `~/Library/Application Support/Adobe/CEP/extensions/com.aigeolab.motionease`
+- Windows: `%APPDATA%\Adobe\CEP\extensions\com.aigeolab.frameflow`
+- macOS: `~/Library/Application Support/Adobe/CEP/extensions/com.aigeolab.frameflow`
 
 > **Giving it to other people?** See **[DISTRIBUTION.md](DISTRIBUTION.md)** — build a shareable
 > ZIP (`build-zip.ps1`) or a signed `.zxp` (`build-zxp.ps1`).
@@ -103,7 +103,7 @@ extension into your per-user Adobe CEP folder:
    move the playhead, change the value). Two keyframes is enough.
 2. **Select the clip.** The panel shows "1 clip selected" and the property dots light up for
    whatever is keyframed.
-3. **Move the playhead between the two keyframes** you want to ease. (This is how MotionEase
+3. **Move the playhead between the two keyframes** you want to ease. (This is how FrameFlow
    knows which segment to affect.)
 4. **Shape the curve** — drag the two handles. Hold **Shift** for free movement past 0–1
    (overshoot / anticipation). Or click a **preset**.
@@ -121,7 +121,7 @@ time (how fast it moves at each moment). Editing either changes the same handles
 ## Project structure
 
 ```
-MotionEase/
+FrameFlow/
 ├─ CSXS/
 │  └─ manifest.xml          CEP manifest (host app, panel size, entry points)
 ├─ client/                  the panel UI (runs in Premiere's Chromium)
@@ -134,7 +134,7 @@ MotionEase/
 │     ├─ graph.js           the interactive canvas graph editor
 │     └─ main.js            panel controller, Apply, Undo, polling
 ├─ host/
-│  ├─ MotionEase.jsx        ExtendScript: reads + bakes keyframes, undo, scan
+│  ├─ FrameFlow.jsx        ExtendScript: reads + bakes keyframes, undo, scan
 │  └─ lib/json2.jsx         JSON polyfill for the ExtendScript engine
 ├─ .debug                   remote-debug ports (dev only)
 ├─ install-windows.ps1      installer (enables debug mode + copies)
@@ -146,11 +146,11 @@ MotionEase/
 ```
 
 ### Host API (called from the panel via `evalScript`)
-- `MotionEase.ping()` → version string
-- `MotionEase.scanSelection()` → JSON: per-property keyframe status + effects that hold keyframes
-- `MotionEase.apply(payloadJson)` → bakes the curve; returns `{ ok, applied, message, details }`
-- `MotionEase.restoreLast()` → undo the last Apply
-- `MotionEase.undoCount()` → history depth (to sync the Undo button)
+- `FrameFlow.ping()` → version string
+- `FrameFlow.scanSelection()` → JSON: per-property keyframe status + effects that hold keyframes
+- `FrameFlow.apply(payloadJson)` → bakes the curve; returns `{ ok, applied, message, details }`
+- `FrameFlow.restoreLast()` → undo the last Apply
+- `FrameFlow.undoCount()` → history depth (to sync the Undo button)
 
 ---
 
@@ -160,7 +160,7 @@ With debug mode on (the installer sets it), open **http://localhost:8088** in Ch
 panel is loaded in Premiere to get full DevTools (console, breakpoints) for the panel UI. The
 port is defined in `.debug`.
 
-To iterate on the ExtendScript host, edit `host/MotionEase.jsx`, re-run the installer to copy it,
+To iterate on the ExtendScript host, edit `host/FrameFlow.jsx`, re-run the installer to copy it,
 then reopen the panel (host is re-evaluated when the panel loads).
 
 ---
@@ -168,7 +168,7 @@ then reopen the panel (host is re-evaluated when the panel loads).
 ## Known limitations
 
 - **No scripted keyframe influence.** Premiere's API can't set temporal ease influence like AE,
-  so MotionEase bakes keyframes rather than using two "influenced" keyframes. This is inherent to
+  so FrameFlow bakes keyframes rather than using two "influenced" keyframes. This is inherent to
   Premiere, not a limitation of the tool.
 - **Playhead picks the segment.** Because the API can't report *which* keyframes you selected,
   the playhead position chooses the segment to ease. Put it between the two keyframes you mean.
@@ -189,5 +189,5 @@ then reopen the panel (host is re-evaluated when the panel loads).
 
 ## Credits
 
-**MotionEase** — designed and built by **Fahad Akash**.
-Bundle id `com.aigeolab.motionease`. Built as an Adobe CEP extension.
+**FrameFlow** — designed and built by **Fahad Akash**.
+Bundle id `com.aigeolab.frameflow`. Built as an Adobe CEP extension.

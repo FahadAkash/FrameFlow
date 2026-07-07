@@ -1,6 +1,6 @@
-# Distributing MotionEase to other users
+# Distributing FrameFlow to other users
 
-There are two ways to give MotionEase to someone else. Pick based on how "official"
+There are two ways to give FrameFlow to someone else. Pick based on how "official"
 you want it to feel.
 
 | | A. ZIP + installer | B. Signed `.zxp` |
@@ -18,15 +18,15 @@ you want it to feel.
 ```powershell
 powershell -ExecutionPolicy Bypass -File build-zip.ps1
 ```
-This creates **`dist\MotionEase-1.0.zip`**. Send that file to the user.
+This creates **`dist\FrameFlow-1.0.zip`**. Send that file to the user.
 
 **They install it:**
-1. Unzip `MotionEase-1.0.zip` anywhere.
+1. Unzip `FrameFlow-1.0.zip` anywhere.
 2. **Windows** — right-click `install-windows.ps1` → *Run with PowerShell*
    (or `powershell -ExecutionPolicy Bypass -File install-windows.ps1`).
    **macOS** — in Terminal: `chmod +x install-mac.command` then double-click it.
 3. Fully quit and relaunch Premiere Pro.
-4. **Window → Extensions → MotionEase Graph Editor.**
+4. **Window → Extensions → FrameFlow Graph Editor.**
 
 The installer enables CEP *debug mode* (needed for an unsigned panel) and copies the
 extension into their per-user Adobe CEP folder. That's the same thing we've been doing
@@ -50,9 +50,9 @@ powershell -ExecutionPolicy Bypass -File build-zxp.ps1
 # or, if it isn't on PATH:
 powershell -ExecutionPolicy Bypass -File build-zxp.ps1 -SignCmd "C:\tools\ZXPSignCmd.exe"
 ```
-- First run creates a self-signed certificate `cert.p12` (password `motionease` — change it
+- First run creates a self-signed certificate `cert.p12` (password `frameflow` — change it
   in the script for a real release). Keep `cert.p12` safe and reuse it for future versions.
-- Output: **`dist\MotionEase-1.0.zxp`**. Send that file.
+- Output: **`dist\FrameFlow-1.0.zxp`**. Send that file.
 
 **They install it** with any ZXP installer:
 - **ZXPInstaller** (free, drag-and-drop) — https://zxpinstaller.com

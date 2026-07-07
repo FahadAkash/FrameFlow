@@ -1,4 +1,4 @@
-# MotionEase — Windows installer
+# FrameFlow — Windows installer
 # 1) Enables CEP "debug mode" so an unsigned panel is allowed to load.
 # 2) Copies this extension into the per-user Adobe CEP extensions folder.
 #
@@ -6,11 +6,11 @@
 #   or:  powershell -ExecutionPolicy Bypass -File install-windows.ps1
 
 $ErrorActionPreference = "Stop"
-$bundleId = "com.aigeolab.motionease"
+$bundleId = "com.aigeolab.frameflow"
 $source   = $PSScriptRoot
 $dest     = Join-Path $env:APPDATA "Adobe\CEP\extensions\$bundleId"
 
-Write-Host "MotionEase installer" -ForegroundColor Cyan
+Write-Host "FrameFlow installer" -ForegroundColor Cyan
 Write-Host "--------------------"
 
 # --- 1. Enable PlayerDebugMode for every CEP runtime Premiere might use ------
@@ -39,4 +39,4 @@ Write-Host "[ok] Installed to:" -ForegroundColor Green
 Write-Host "     $dest"
 Write-Host ""
 Write-Host "Now fully quit Premiere Pro and relaunch it." -ForegroundColor Yellow
-Write-Host "Open the panel:  Window > Extensions > MotionEase Graph Editor"
+Write-Host "Open the panel:  Window > Extensions > FrameFlow Graph Editor"

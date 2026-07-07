@@ -1,16 +1,16 @@
 #!/bin/bash
-# MotionEase — macOS installer
+# FrameFlow — macOS installer
 # 1) Enables CEP "debug mode" so an unsigned panel is allowed to load.
 # 2) Copies this extension into the per-user Adobe CEP extensions folder.
 #
 # Run:  chmod +x install-mac.command  then double-click it (or run in Terminal).
 
 set -e
-BUNDLE_ID="com.aigeolab.motionease"
+BUNDLE_ID="com.aigeolab.frameflow"
 SOURCE="$(cd "$(dirname "$0")" && pwd)"
 DEST="$HOME/Library/Application Support/Adobe/CEP/extensions/$BUNDLE_ID"
 
-echo "MotionEase installer"
+echo "FrameFlow installer"
 echo "--------------------"
 
 # 1. Enable PlayerDebugMode for every CEP runtime Premiere might use
@@ -32,4 +32,4 @@ echo "[ok] Installed to:"
 echo "     $DEST"
 echo ""
 echo "Now fully quit Premiere Pro and relaunch it."
-echo "Open the panel:  Window > Extensions > MotionEase Graph Editor"
+echo "Open the panel:  Window > Extensions > FrameFlow Graph Editor"

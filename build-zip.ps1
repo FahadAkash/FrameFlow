@@ -1,16 +1,16 @@
-# MotionEase — build a shareable ZIP (no signing required).
-# Produces dist\MotionEase-1.0.zip containing the extension + installers.
+# FrameFlow — build a shareable ZIP (no signing required).
+# Produces dist\FrameFlow-1.0.zip containing the extension + installers.
 # Recipients unzip it and run install-windows.ps1 (or install-mac.command).
 
 $ErrorActionPreference = "Stop"
 $root  = $PSScriptRoot
 $dist  = Join-Path $root "dist"
-$stage = Join-Path ([System.IO.Path]::GetTempPath()) "MotionEase"
-$zip   = Join-Path $dist "MotionEase-1.0.zip"
+$stage = Join-Path ([System.IO.Path]::GetTempPath()) "FrameFlow"
+$zip   = Join-Path $dist "FrameFlow-1.0.zip"
 
-Write-Host "Packaging MotionEase ZIP..." -ForegroundColor Cyan
+Write-Host "Packaging FrameFlow ZIP..." -ForegroundColor Cyan
 
-# stage a clean 'MotionEase' folder so the zip unpacks to a named folder
+# stage a clean 'FrameFlow' folder so the zip unpacks to a named folder
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Path $stage | Out-Null
 
