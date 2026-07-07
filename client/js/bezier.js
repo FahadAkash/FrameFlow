@@ -76,6 +76,69 @@
         return out;
     }
 
+    /**
+     * Adaptive sampling: place points only where the curve deviates from a
+     * straight line, via recursive midpoint subdivision. A near-linear stretch
+     * yields ~2 points; a sharp ease or an overshoot yields more. Linear
+     * interpolation between the returned points stays within `tol` of the true
+     * curve — so you get smooth motion with far fewer keyframes than even
+     * sampling (Flow-like tidy keyframes).
+     *
+     * @param {number[]} cp   - [x1,y1,x2,y2]
+     * @param {object} [opts] - { tol:0.004, maxPoints:24, minPoints:3 }
+     * @returns {Array<{t:number,v:number}>} sorted by t, always incl. t=0 and t=1
+     */
+    function sampleCurveAdaptive(cp, opts) {
+        opts = opts || {};
+        var tol = opts.tol || 0.004;         // max value error (fraction of range)
+        var maxPoints = opts.maxPoints || 24;
+        var minPoints = opts.minPoints || 3;
+        var ease = CubicBezier(cp);
+
+        var pts = [{ t: 0, v: ease(0) }, { t: 1, v: ease(1) }];
+
+        // Worst-case deviation of the true curve from the chord across the whole
+        // interval — sampled at several interior points so symmetric curves
+        // (whose midpoint lies on the chord) are not missed.
+        function segError(t0, v0, t1, v1) {
+            var maxE = 0;
+            for (var s = 1; s < 8; s++) {
+                var t = t0 + (t1 - t0) * (s / 8);
+                var f = (t - t0) / (t1 - t0);
+                var lin = v0 + (v1 - v0) * f;
+                var e = Math.abs(ease(t) - lin);
+                if (e > maxE) maxE = e;
+            }
+            return maxE;
+        }
+
+        function recurse(t0, v0, t1, v1, depth) {
+            if (pts.length >= maxPoints || depth > 14) return;
+            if (segError(t0, v0, t1, v1) > tol) {
+                var tm = (t0 + t1) / 2;
+                var vm = ease(tm);
+                pts.push({ t: tm, v: vm });
+                recurse(t0, v0, tm, vm, depth + 1);
+                recurse(tm, vm, t1, v1, depth + 1);
+            }
+        }
+        recurse(0, pts[0].v, 1, pts[1].v, 0);
+
+        // guarantee a minimum smoothness floor for very gentle curves
+        while (pts.length < minPoints) {
+            var frac = pts.length / minPoints;
+            pts.push({ t: frac, v: ease(frac) });
+        }
+
+        pts.sort(function (a, b) { return a.t - b.t; });
+        // dedupe near-identical t values
+        var out = [pts[0]];
+        for (var i = 1; i < pts.length; i++) {
+            if (pts[i].t - out[out.length - 1].t > 1e-4) out.push(pts[i]);
+        }
+        return out;
+    }
+
     /** Normalized velocity (dv/dt) sampled across time, scaled so peak ~= 1. */
     function sampleVelocity(cp, steps) {
         steps = steps || 40;
@@ -97,6 +160,7 @@
     var api = {
         CubicBezier: CubicBezier,
         sampleCurve: sampleCurve,
+        sampleCurveAdaptive: sampleCurveAdaptive,
         sampleVelocity: sampleVelocity
     };
 

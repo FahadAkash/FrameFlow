@@ -217,7 +217,11 @@
             samples: density,
             easeStart: ease.easeStart,    // native mode: bezier the first keyframe
             easeEnd: ease.easeEnd,        // native mode: bezier the last keyframe
-            curve: Bezier.sampleCurve(editor.cp, density)
+            // adaptive: keyframes only where the curve bends, error-bounded,
+            // capped at the kf field. Far fewer keys than even sampling.
+            curve: method === "bake"
+                ? Bezier.sampleCurveAdaptive(editor.cp, { tol: 0.006, maxPoints: density, minPoints: 3 })
+                : Bezier.sampleCurve(editor.cp, density)
         };
         var payloadStr = JSON.stringify(payload);
         els.applyBtn.disabled = true;
