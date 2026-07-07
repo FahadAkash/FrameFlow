@@ -28,7 +28,23 @@ html, body {
     -webkit-user-select: none;
     user-select: none;
     overflow-x: hidden;
+    scrollbar-width: thin;                       /* Firefox / newer Chromium */
+    scrollbar-color: var(--stroke-2) transparent;
 }
+
+/* ---- Themed scrollbars (panel runs in Chromium, so webkit rules apply) ---- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--stroke-2);
+    border-radius: 10px;
+    border: 3px solid transparent;               /* inset padding around the thumb */
+    background-clip: content-box;                /* keeps the rounded pill look */
+    min-height: 36px;
+}
+::-webkit-scrollbar-thumb:hover { background: #3f4b5e; background-clip: content-box; }
+::-webkit-scrollbar-thumb:active { background: var(--accent); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
 
 #app { padding: 12px 14px 76px; max-width: 720px; margin: 0 auto; }
 
@@ -102,9 +118,7 @@ h2 { font-size: 13px; font-weight: 600; }
 .more-badge { font-size: 10px; color: var(--handle-a); cursor: pointer; }
 
 /* Presets */
-.preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 12px 2px 4px; }
-.preset-scroll::-webkit-scrollbar { height: 8px; }
-.preset-scroll::-webkit-scrollbar-thumb { background: var(--stroke-2); border-radius: 4px; }
+.preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 12px 2px 6px; }
 .preset {
     flex: 0 0 auto; width: 78px; background: var(--panel-2);
     border: 1px solid var(--stroke-2); border-radius: 8px; padding: 8px; cursor: pointer;
