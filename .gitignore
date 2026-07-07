@@ -11,4 +11,5 @@ desktop.ini
 # Build / release artifacts
 *.zxp
 *.p12
+dist/
 node_modules/
