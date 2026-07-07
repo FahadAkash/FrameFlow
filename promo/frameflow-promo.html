@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FrameFlow — Promo</title>
+<style>
+  :root{
+    --bg:#0e1116; --blue:#7db0ff; --accent:#2f6bff; --purple:#c084fc;
+    --amber:#f59e0b; --green:#22c55e; --red:#ef4444; --text:#e7ecf3; --muted:#8794a6;
+    --font:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;font-family:var(--font);overflow:hidden}
+  /* 16:9 stage, letterboxed and centered */
+  .wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+  .stage{
+    position:relative;width:100vw;height:56.25vw;max-height:100vh;max-width:177.78vh;
+    background:radial-gradient(120% 90% at 50% 0%,#141c28 0%,#0b0e13 60%,#070a0e 100%);
+    overflow:hidden;color:var(--text);
+  }
+  /* subtle animated grid backdrop */
+  .grid-bg{position:absolute;inset:0;opacity:.25;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:4% 7%;mask-image:radial-gradient(circle at 50% 45%,#000 40%,transparent 78%);
+    -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 40%,transparent 78%);}
+
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    opacity:0;transform:translateY(18px) scale(.99);transition:opacity .6s ease,transform .6s ease;
+    padding:6% 8%;text-align:center;pointer-events:none}
+  .scene.show{opacity:1;transform:none}
+
+  h1{font-size:clamp(28px,7vw,96px);font-weight:800;letter-spacing:.5px;line-height:1}
+  .grad{background:linear-gradient(92deg,var(--blue) 0%,var(--purple) 52%,var(--amber) 120%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  h2{font-size:clamp(20px,3.6vw,44px);font-weight:700;line-height:1.15}
+  .sub{font-size:clamp(13px,1.9vw,24px);color:var(--muted);margin-top:1.2vw;letter-spacing:.3px}
+  .kicker{font-size:clamp(11px,1.4vw,17px);letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:1.4vw}
+
+  /* logo mark: film strip + flow curve */
+  .mark{width:clamp(70px,11vw,150px);height:clamp(70px,11vw,150px);margin-bottom:2.4vw;
+    filter:drop-shadow(0 12px 40px rgba(47,107,255,.35))}
+  .mark .curve{stroke-dasharray:230;stroke-dashoffset:230;animation:draw 1.6s .3s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+
+  /* lists */
+  ul{list-style:none;margin-top:2.2vw;display:flex;flex-direction:column;gap:1.1vw;text-align:left}
+  li{font-size:clamp(15px,2.3vw,30px);display:flex;align-items:center;gap:1.1vw;opacity:0;transform:translateX(-16px);
+    animation:in .5s forwards}
+  .scene.show li{}
+  @keyframes in{to{opacity:1;transform:none}}
+  .bad .ic{color:var(--red)} .good .ic{color:var(--green)}
+  .ic{font-weight:900;font-size:1.1em;width:1.3em;flex:0 0 auto;text-align:center}
+  li b{color:#fff;font-weight:600}
+  li span{color:var(--muted)}
+
+  /* before/after split */
+  .split{display:flex;gap:2vw;width:100%;height:60%;margin-top:2vw}
+  .pane{flex:1;border:1px solid #232c39;border-radius:14px;position:relative;overflow:hidden;
+    background:linear-gradient(180deg,#141a24,#0e131b);display:flex;align-items:center;justify-content:center}
+  .pane .tag{position:absolute;top:4%;left:0;right:0;font-size:clamp(12px,1.7vw,22px);font-weight:700}
+  .pane.before .tag{color:var(--red)} .pane.after .tag{color:var(--green)}
+  .mover{width:12%;aspect-ratio:1;border-radius:14px}
+  .mover.stiff{background:#64748b;animation:stiff 1.6s linear infinite}
+  .mover.smooth{background:linear-gradient(135deg,var(--accent),var(--purple));
+    box-shadow:0 10px 30px rgba(47,107,255,.4);animation:smooth 1.8s cubic-bezier(.34,1.56,.64,1) infinite}
+  @keyframes stiff{0%,100%{transform:translateX(-150%)}50%{transform:translateX(150%)}}
+  @keyframes smooth{0%,12%{transform:translateX(-150%) scale(.9)}50%,60%{transform:translateX(150%) scale(1.05)}100%{transform:translateX(-150%) scale(.9)}}
+
+  /* interactive-looking bezier panel for the solution scene */
+  .panel{width:min(52%,620px);border:1px solid #232c39;border-radius:16px;padding:2%;margin-top:1.5vw;
+    background:radial-gradient(120% 90% at 15% 0,rgba(47,107,255,.12),transparent 55%),linear-gradient(180deg,#141a24,#10151d);
+    box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .panel svg{width:100%;height:auto;display:block}
+  .handle{animation:bend 3.2s ease-in-out infinite alternate}
+  @keyframes bend{from{transform:translate(0,0)}to{transform:translate(0,-34px)}}
+  .handle2{animation:bend2 3.2s ease-in-out infinite alternate}
+  @keyframes bend2{from{transform:translate(0,0)}to{transform:translate(0,34px)}}
+
+  /* CTA */
+  .price{font-size:clamp(20px,3vw,40px);font-weight:800;color:#fff;margin-top:.6vw}
+  .cta-btn{margin-top:2.4vw;background:linear-gradient(92deg,var(--accent),#5b7cff);color:#fff;
+    border:none;border-radius:14px;padding:1.1vw 3.4vw;font:800 clamp(16px,2.4vw,30px) var(--font);
+    box-shadow:0 14px 40px rgba(47,107,255,.5);animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .by{margin-top:2vw;color:var(--muted);font-size:clamp(12px,1.6vw,20px)}
+  .by b{color:var(--text)}
+
+  /* controls */
+  .controls{position:fixed;bottom:14px;right:16px;display:flex;gap:8px;z-index:50}
+  .controls button{background:#1a212b;color:#cfd8e6;border:1px solid #2c3644;border-radius:8px;
+    padding:8px 12px;font:600 12px var(--font);cursor:pointer}
+  .controls button:hover{border-color:var(--accent);color:#fff}
+  .hint{position:fixed;bottom:16px;left:16px;color:#556; font:500 12px var(--font);z-index:50}
+  .progress{position:absolute;left:0;bottom:0;height:4px;width:0;background:linear-gradient(90deg,var(--blue),var(--purple),var(--amber));transition:width .2s linear;z-index:20}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage" id="stage">
+    <div class="grid-bg"></div>
+    <div class="progress" id="progress"></div>
+
+    <!-- SCENE 1 — LOGO INTRO -->
+    <section class="scene" data-scene="0">
+      <svg class="mark" viewBox="0 0 100 100" fill="none">
+        <rect x="12" y="20" width="76" height="60" rx="10" stroke="#2f6bff" stroke-width="4"/>
+        <g fill="#2f6bff">
+          <rect x="18" y="26" width="6" height="6" rx="1.5"/><rect x="18" y="68" width="6" height="6" rx="1.5"/>
+          <rect x="76" y="26" width="6" height="6" rx="1.5"/><rect x="76" y="68" width="6" height="6" rx="1.5"/>
+        </g>
+        <path class="curve" d="M22 68 C 40 68, 46 34, 78 32" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="22" cy="68" r="4.5" fill="#fff"/><circle cx="78" cy="32" r="4.5" fill="#f59e0b"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#7db0ff"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+      </svg>
+      <h1 class="grad">FrameFlow</h1>
+      <p class="sub">A real graph editor for Premiere&nbsp;Pro</p>
+    </section>
+
+    <!-- SCENE 2 — THE PROBLEM -->
+    <section class="scene" data-scene="1">
+      <div class="kicker">The problem</div>
+      <h2>Premiere never gave you<br>a graph editor.</h2>
+      <ul class="bad">
+        <li><span class="ic">✕</span><span><b>"Ease In / Out" is a lie</b> — a vague influence % you can't see</span></li>
+        <li><span class="ic">✕</span><span><b>You're guessing the curve</b> — drag, scrub back, nudge, repeat</span></li>
+        <li><span class="ic">✕</span><span><b>AE round-trips kill you</b> — a whole other app</span></li>
+      </ul>
+    </section>
+
+    <!-- SCENE 3 — THE SOLUTION -->
+    <section class="scene" data-scene="2">
+      <div class="kicker" style="color:var(--green)">The fix</div>
+      <h2>Bend a bezier. <span class="grad">Watch it move.</span></h2>
+      <div class="panel">
+        <svg viewBox="0 0 400 200">
+          <g stroke="#232c39" stroke-width="1">
+            <line x1="0" y1="50" x2="400" y2="50"/><line x1="0" y1="100" x2="400" y2="100"/><line x1="0" y1="150" x2="400" y2="150"/>
+            <line x1="100" y1="0" x2="100" y2="200"/><line x1="200" y1="0" x2="200" y2="200"/><line x1="300" y1="0" x2="300" y2="200"/>
+          </g>
+          <path d="M20 170 C 120 170, 200 30, 380 30" stroke="#3b82f6" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <line x1="20" y1="170" x2="120" y2="170" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="4"/>
+          <line x1="380" y1="30" x2="300" y2="30" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4"/>
+          <circle cx="20" cy="170" r="5" fill="#fff"/><circle cx="380" cy="30" r="5" fill="#fff"/>
+          <circle class="handle" cx="120" cy="170" r="7" fill="#c084fc"/>
+          <circle class="handle2" cx="300" cy="30" r="7" fill="#f59e0b"/>
+        </svg>
+      </div>
+      <ul class="good" style="margin-top:1.4vw">
+        <li><span class="ic">✓</span><span><b>See &amp; shape the curve</b> — value <b>and</b> speed graphs</span></li>
+        <li><span class="ic">✓</span><span><b>Any keyframeable property</b> — Position, Scale, effects, plugins</span></li>
+      </ul>
+    </section>
+
+    <!-- SCENE 4 — BEFORE / AFTER -->
+    <section class="scene" data-scene="3">
+      <div class="kicker">The difference</div>
+      <h2>Manual &amp; stiff <span style="color:var(--muted)">→</span> <span class="grad">effortless ease</span></h2>
+      <div class="split">
+        <div class="pane before"><div class="tag">BEFORE — linear, robotic</div><div class="mover stiff"></div></div>
+        <div class="pane after"><div class="tag">AFTER — FrameFlow eased</div><div class="mover smooth"></div></div>
+      </div>
+    </section>
+
+    <!-- SCENE 5 — CTA -->
+    <section class="scene" data-scene="4">
+      <svg class="mark" viewBox="0 0 100 100" fill="none" style="margin-bottom:1.4vw">
+        <rect x="12" y="20" width="76" height="60" rx="10" stroke="#2f6bff" stroke-width="4"/>
+        <path d="M22 68 C 40 68, 46 34, 78 32" stroke="url(#g2)" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="22" cy="68" r="4.5" fill="#fff"/><circle cx="78" cy="32" r="4.5" fill="#f59e0b"/>
+        <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#7db0ff"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+      </svg>
+      <h1 class="grad">FrameFlow</h1>
+      <p class="sub">Stop guessing your easing. Start shaping it.</p>
+      <div class="price">$9.99 · one-time</div>
+      <button class="cta-btn">Get FrameFlow →</button>
+      <p class="by">Premiere Pro 2022+ · Windows &amp; macOS · by <b>Fahad Akash</b></p>
+    </section>
+  </div>
+</div>
+
+<div class="hint">Press <b>F</b> for fullscreen, then screen-record.</div>
+<div class="controls">
+  <button id="replay">↻ Replay</button>
+  <button id="full">⛶ Fullscreen</button>
+</div>
+
+<script>
+  // Scene timeline (ms): [sceneIndex, startAt]. Each shows until the next starts.
+  var TL = [
+    { s:0, at:0     },  // logo intro
+    { s:1, at:3800  },  // problem
+    { s:2, at:9200  },  // solution
+    { s:3, at:15200 },  // before/after
+    { s:4, at:20800 }   // CTA
+  ];
+  var END = 27000; // total loop length
+  var scenes = document.querySelectorAll('.scene');
+  var progress = document.getElementById('progress');
+  var timers = [];
+  var startTime = 0, raf = 0;
+
+  function clearAll(){ timers.forEach(clearTimeout); timers=[]; cancelAnimationFrame(raf); }
+
+  function stagger(scene){
+    // re-trigger the list-item entrance animations
+    var lis = scene.querySelectorAll('li');
+    lis.forEach(function(li,i){ li.style.animation='none'; void li.offsetWidth;
+      li.style.animation='in .5s '+(0.15*i+0.2)+'s forwards'; });
+  }
+
+  function play(){
+    clearAll();
+    scenes.forEach(function(s){ s.classList.remove('show'); });
+    startTime = performance.now();
+    TL.forEach(function(step){
+      timers.push(setTimeout(function(){
+        scenes.forEach(function(s){ s.classList.remove('show'); });
+        var el = scenes[step.s];
+        el.classList.add('show');
+        stagger(el);
+      }, step.at));
+    });
+    timers.push(setTimeout(play, END)); // loop
+    tick();
+  }
+  function tick(){
+    var p = Math.min((performance.now()-startTime)/END,1);
+    progress.style.width = (p*100)+'%';
+    raf = requestAnimationFrame(tick);
+  }
+
+  document.getElementById('replay').onclick = play;
+  document.getElementById('full').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else { document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key==='f'||e.key==='F'){ document.getElementById('full').click(); }
+    if(e.key==='r'||e.key==='R'){ play(); }
+  });
+
+  play();
+</script>
+</body>
+</html>
