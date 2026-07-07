@@ -191,13 +191,13 @@
     // custom stepper for the keyframe-count field (native spinner is hidden)
     function clampDens(v) { return Math.max(4, Math.min(120, v)); }
     function nudgeDens(delta) {
-        var v = clampDens((parseInt(els.densInput.value, 10) || 24) + delta);
+        var v = clampDens((parseInt(els.densInput.value, 10) || 12) + delta);
         els.densInput.value = v;
     }
     els.densMinus.addEventListener("click", function () { nudgeDens(-4); });
     els.densPlus.addEventListener("click", function () { nudgeDens(4); });
     els.densInput.addEventListener("change", function () {
-        els.densInput.value = clampDens(parseInt(els.densInput.value, 10) || 24);
+        els.densInput.value = clampDens(parseInt(els.densInput.value, 10) || 12);
     });
 
     // ---- apply --------------------------------------------------------------
@@ -207,7 +207,7 @@
         if (!hostReady) { toast("Not running inside Premiere Pro", "err"); return; }
 
         var method = applyMethod();
-        var density = Math.max(4, Math.min(120, parseInt(els.densInput.value, 10) || 24));
+        var density = Math.max(4, Math.min(120, parseInt(els.densInput.value, 10) || 12));
         var ease = computeEase(editor.cp);
         var payload = {
             cp: editor.cp,

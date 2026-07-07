@@ -93,6 +93,84 @@ var MotionEase = (function () {
         return a + (b - a) * f;
     }
 
+    var TICKS_PER_SECOND = 254016000000;
+
+    // A numeric value in the key's OWN domain (may be seconds or ticks). Used
+    // only for ordering/interpolation — never converted before feeding it back
+    // to Premiere, so we stay in whatever domain getKeys() handed us.
+    function rawNum(k) {
+        if (k === null || k === undefined) return null;
+        if (typeof k === "number") return k;
+        if (typeof k === "string") { var s = parseFloat(k); return isNaN(s) ? null : s; }
+        if (k.ticks !== undefined && k.ticks !== null) {
+            var t = parseFloat(k.ticks);
+            if (!isNaN(t)) return t;
+        }
+        if (k.seconds !== undefined && k.seconds !== null) return k.seconds;
+        var n = Number(k);
+        return isNaN(n) ? null : n;
+    }
+
+    // Given the numeric magnitudes, decide whether they are ticks or seconds and
+    // return a converter to seconds (for comparing against the playhead).
+    function toSecondsFn(nums) {
+        var mx = 0;
+        for (var i = 0; i < nums.length; i++) {
+            if (nums[i] !== null) { var a = Math.abs(nums[i]); if (a > mx) mx = a; }
+        }
+        var looksLikeTicks = mx > 1e7; // 1e7 seconds = ~115 days; no real timeline hits that
+        return looksLikeTicks
+            ? function (n) { return n / TICKS_PER_SECOND; }
+            : function (n) { return n; };
+    }
+
+    function playheadSeconds(seq) {
+        try {
+            var t = seq.getPlayerPosition();
+            if (t === null || t === undefined) return null;
+            if (t.seconds !== undefined && t.seconds !== null) return t.seconds;
+            if (t.ticks !== undefined && t.ticks !== null) {
+                var tk = parseFloat(t.ticks);
+                if (!isNaN(tk)) return tk / TICKS_PER_SECOND;
+            }
+            return rawNum(t);
+        } catch (e) { return null; }
+    }
+
+    // From a property's raw keyframe list, pick the ONE segment (adjacent pair)
+    // that the playhead sits inside. This is how we scope an Apply to just the
+    // two keyframes you're working on instead of the whole property. Returns
+    // sorted { raw, n } entries plus the chosen a/b endpoints.
+    function pickSegment(keys, seq) {
+        var arr = [];
+        for (var i = 0; i < keys.length; i++) {
+            var n = rawNum(keys[i]);
+            if (n !== null) arr.push({ raw: keys[i], n: n });
+        }
+        arr.sort(function (x, y) { return x.n - y.n; });
+        if (arr.length < 2) return null;
+
+        var nums = [];
+        for (var j = 0; j < arr.length; j++) nums.push(arr[j].n);
+        var toSec = toSecondsFn(nums);
+        var P = playheadSeconds(seq);
+
+        var idx = -1;
+        if (P !== null) {
+            for (var s = 0; s < arr.length - 1; s++) {
+                var a = toSec(arr[s].n), b = toSec(arr[s + 1].n);
+                if (P >= a - 1e-4 && P <= b + 1e-4) { idx = s; break; }
+            }
+            if (idx < 0) { // playhead outside all segments -> nearest end segment
+                idx = (P < toSec(arr[0].n)) ? 0 : arr.length - 2;
+            }
+        } else {
+            idx = 0; // no playhead info: fall back to the first segment
+        }
+
+        return { list: arr, a: arr[idx], b: arr[idx + 1], multi: arr.length > 2 };
+    }
+
     // Find matching ComponentParams on a TrackItem for the requested props.
     function collectProps(item, wanted) {
         var found = []; // { id, param }
@@ -124,8 +202,10 @@ var MotionEase = (function () {
         try { param.setInterpolationTypeAtKey(time, KF.LINEAR, true); } catch (e) {}
     }
 
-    // Bake the curve onto one ComponentParam between its outer keyframes.
-    function bakeParam(param, curve) {
+    // Bake the curve onto ONE segment (the keyframe pair at the playhead) of a
+    // ComponentParam. Reads the segment's endpoint values, clears just that
+    // segment, and rebuilds it from the curve — other segments are untouched.
+    function bakeParam(param, curve, seq) {
         var report = { applied: false, reason: "" };
 
         var timeVarying = false;
@@ -136,33 +216,28 @@ var MotionEase = (function () {
         try { keys = param.getKeys(); } catch (e) { keys = null; }
         if (!keys || keys.length < 2) { report.reason = "needs 2+ keyframes"; return report; }
 
-        // outer keyframe times
-        var times = [];
-        for (var i = 0; i < keys.length; i++) {
-            var s = keyTimeSeconds(keys[i]);
-            if (s !== null) times.push(s);
-        }
-        times.sort(function (a, b) { return a - b; });
-        var tStart = times[0], tEnd = times[times.length - 1];
-        if (tEnd <= tStart) { report.reason = "zero-length range"; return report; }
+        var seg = pickSegment(keys, seq);
+        if (!seg) { report.reason = "no segment"; return report; }
 
-        // read endpoint values BEFORE we clear the range
+        var aRaw = seg.a.raw, bRaw = seg.b.raw;   // pass RAW back to Premiere
+        var aNum = seg.a.n, bNum = seg.b.n;       // domain-native numbers for new keys
+        if (bNum <= aNum) { report.reason = "zero-length segment"; return report; }
+
+        // read endpoint values BEFORE we clear the segment (use RAW keys)
         var vStart, vEnd;
-        try { vStart = param.getValueAtKey(tStart); } catch (e) { report.reason = "read start failed"; return report; }
-        try { vEnd = param.getValueAtKey(tEnd); } catch (e) { report.reason = "read end failed"; return report; }
+        try { vStart = param.getValueAtKey(aRaw); } catch (e) { report.reason = "read start failed"; return report; }
+        try { vEnd = param.getValueAtKey(bRaw); } catch (e) { report.reason = "read end failed"; return report; }
 
-        // clear everything in the range, then rebuild from the curve
-        try { param.removeKeyRange(tStart, tEnd, true); } catch (e) {}
+        // clear only this segment, then rebuild from the curve
+        try { param.removeKeyRange(aNum, bNum, true); } catch (e) {}
 
-        var span = tEnd - tStart;
+        var span = bNum - aNum;
         var count = 0;
         for (var c = 0; c < curve.length; c++) {
             var pt = curve[c];
-            var time = tStart + pt.t * span;
+            var time = aNum + pt.t * span;         // stay in the key's own domain
             var value = lerp(vStart, vEnd, pt.v);
-            try {
-                param.addKey(time);
-            } catch (eAdd) {}
+            try { param.addKey(time); } catch (eAdd) {}
             try {
                 param.setValueAtKey(time, value, true);
                 setKeyLinear(param, time);
@@ -171,7 +246,9 @@ var MotionEase = (function () {
         }
 
         report.applied = count > 0;
-        report.reason = report.applied ? (count + " keys") : "write failed";
+        report.reason = report.applied
+            ? (count + " keys" + (seg.multi ? " (segment @ playhead)" : ""))
+            : "write failed";
         report.keys = count;
         return report;
     }
@@ -186,7 +263,7 @@ var MotionEase = (function () {
     //   start -> Ease In      (only the first keyframe bezier; end stays snappy)
     //   end   -> Ease Out     (only the last keyframe bezier; start stays snappy)
     //   none  -> Linear
-    function easeParamNative(param, opts) {
+    function easeParamNative(param, opts, seq) {
         var report = { applied: false, reason: "" };
         var easeStart = opts && opts.easeStart;
         var easeEnd = opts && opts.easeEnd;
@@ -199,29 +276,22 @@ var MotionEase = (function () {
         try { keys = param.getKeys(); } catch (e) { keys = null; }
         if (!keys || keys.length < 2) { report.reason = "needs 2+ keyframes"; return report; }
 
-        var times = [];
-        for (var i = 0; i < keys.length; i++) {
-            var s = keyTimeSeconds(keys[i]);
-            if (s !== null) times.push(s);
-        }
-        times.sort(function (a, b) { return a - b; });
+        var seg = pickSegment(keys, seq);
+        if (!seg) { report.reason = "no segment"; return report; }
 
-        var last = times.length - 1;
+        // Set interpolation on just this segment's two keyframes. Pass the RAW
+        // key value straight back to Premiere (no seconds conversion) so it lands
+        // on the right keyframe regardless of the time domain getKeys() uses.
+        var typeStart = easeStart ? BEZIER_INTERP : KF.LINEAR;
+        var typeEnd = easeEnd ? BEZIER_INTERP : KF.LINEAR;
         var n = 0;
-        for (var j = 0; j < times.length; j++) {
-            var useBezier;
-            if (j === 0) useBezier = easeStart;
-            else if (j === last) useBezier = easeEnd;
-            else useBezier = (easeStart || easeEnd); // interior keys: smooth if easing at all
-            var type = useBezier ? BEZIER_INTERP : KF.LINEAR;
-            try {
-                param.setInterpolationTypeAtKey(times[j], type, true);
-                n++;
-            } catch (e) {}
-        }
+        try { param.setInterpolationTypeAtKey(seg.a.raw, typeStart, true); n++; } catch (e) {}
+        try { param.setInterpolationTypeAtKey(seg.b.raw, typeEnd, true); n++; } catch (e) {}
 
         report.applied = n > 0;
-        report.reason = report.applied ? ("eased " + n + " keyframes") : "set interpolation failed";
+        report.reason = report.applied
+            ? ("eased " + n + " keyframes" + (seg.multi ? " (segment @ playhead)" : ""))
+            : "set interpolation failed";
         report.keys = n;
         return report;
     }
@@ -269,8 +339,8 @@ var MotionEase = (function () {
                 var props = collectProps(items[i], wanted);
                 for (var p = 0; p < props.length; p++) {
                     var rep = (method === "bake")
-                        ? bakeParam(props[p].param, curve)
-                        : easeParamNative(props[p].param, easeOpts);
+                        ? bakeParam(props[p].param, curve, seq)
+                        : easeParamNative(props[p].param, easeOpts, seq);
                     result.details.push(props[p].name + ": " + rep.reason);
                     if (rep.applied) applied++; else skipped++;
                 }
