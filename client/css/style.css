@@ -189,6 +189,7 @@ h2 { font-size: 13px; font-weight: 600; }
 .dens .step:active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .dens input:focus { outline: none; border-color: var(--accent); }
 .dens-label { font-size: 11px; color: var(--muted); }
+.mode-caption { flex-basis: 100%; font-size: 10px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
 /* kill the native Windows spinner arrows */
 .dens input::-webkit-outer-spin-button,
 .dens input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

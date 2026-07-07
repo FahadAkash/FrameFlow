@@ -22,6 +22,7 @@
         densMinus: document.getElementById("densMinus"),
         densPlus: document.getElementById("densPlus"),
         easeType: document.getElementById("easeType"),
+        modeCaption: document.getElementById("modeCaption"),
         anyKeyed: document.getElementById("anyKeyed"),
         effectsLine: document.getElementById("effectsLine"),
         replayBtn: document.getElementById("replayBtn"),
@@ -183,7 +184,11 @@
         return checked ? checked.value : "native";
     }
     function syncDensVisibility() {
-        els.densWrap.classList.toggle("hidden", applyMethod() !== "bake");
+        var bake = applyMethod() === "bake";
+        els.densWrap.classList.toggle("hidden", !bake);
+        els.modeCaption.textContent = bake
+            ? "Traces your exact curve with a few keyframes — reliable. Recommended."
+            : "Keeps only your 2 keyframes; applies a generic bezier ease (not the exact curve).";
     }
     Array.prototype.forEach.call(document.querySelectorAll('input[name="applyMode"]'), function (r) {
         r.addEventListener("change", syncDensVisibility);

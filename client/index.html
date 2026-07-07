@@ -75,14 +75,15 @@
         <!-- Apply bar -->
         <footer class="applybar">
             <div class="apply-mode">
-                <label class="radio"><input type="radio" name="applyMode" value="bake" checked /><span>Smooth ease</span></label>
-                <label class="radio"><input type="radio" name="applyMode" value="native" /><span>Native 2-key</span><em class="ease-type" id="easeType">In-Out</em></label>
+                <label class="radio" title="Bakes a few keyframes that trace your exact curve (incl. overshoot). Reliable on every Premiere version. Recommended."><input type="radio" name="applyMode" value="bake" checked /><span>Smooth ease</span></label>
+                <label class="radio" title="Keeps only your 2 keyframes and applies Premiere's bezier ease. Cleanest, but a generic ease — can't reproduce the exact curve."><input type="radio" name="applyMode" value="native" /><span>Native 2-key</span><em class="ease-type" id="easeType">In-Out</em></label>
                 <span class="dens" id="densWrap">
                     <button class="step" id="densMinus" type="button" tabindex="-1" aria-label="Fewer keyframes">&minus;</button>
                     <input id="densInput" type="number" min="4" max="120" value="12" />
                     <button class="step" id="densPlus" type="button" tabindex="-1" aria-label="More keyframes">+</button>
                     <span class="dens-label">kf</span>
                 </span>
+                <span class="mode-caption" id="modeCaption"></span>
             </div>
             <button class="apply-btn" id="applyBtn">Apply to selection</button>
         </footer>
