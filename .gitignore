@@ -1,0 +1,14 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Build / release artifacts
+*.zxp
+*.p12
+node_modules/

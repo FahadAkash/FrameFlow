@@ -1,0 +1,278 @@
+/*
+ * main.js — panel controller. Wires the graph editor, presets, live preview
+ * and the Apply action that hands a sampled curve to the ExtendScript host.
+ */
+(function () {
+    "use strict";
+
+    var cs = new CSInterface();
+    var hostReady = cs.isHostAvailable();
+
+    var els = {
+        status: document.getElementById("hostStatus"),
+        readout: document.getElementById("readout"),
+        propAll: document.getElementById("propAll"),
+        propGrid: document.getElementById("propGrid"),
+        selectionHint: document.getElementById("selectionHint"),
+        presetScroll: document.getElementById("presetScroll"),
+        savePresetBtn: document.getElementById("savePresetBtn"),
+        applyBtn: document.getElementById("applyBtn"),
+        densWrap: document.getElementById("densWrap"),
+        densInput: document.getElementById("densInput"),
+        easeType: document.getElementById("easeType"),
+        replayBtn: document.getElementById("replayBtn"),
+        toast: document.getElementById("toast")
+    };
+
+    var previews = {
+        position: document.getElementById("pvPosition"),
+        scale: document.getElementById("pvScale"),
+        rotation: document.getElementById("pvRotation"),
+        opacity: document.getElementById("pvOpacity")
+    };
+
+    // Derive the ease shape from the curve: is the start slow? the end slow?
+    // Compares endpoint velocity against the curve's peak velocity.
+    function computeEase(cp) {
+        var vel = Bezier.sampleVelocity(cp, 60);
+        var peak = vel.peak || 1e-9;
+        var pts = vel.points;
+        var startRatio = pts[0].v / peak;
+        var endRatio = pts[pts.length - 1].v / peak;
+        var easeStart = startRatio < 0.55;   // starts noticeably slower than peak
+        var easeEnd = endRatio < 0.55;       // ends noticeably slower than peak
+        var label = easeStart && easeEnd ? "In-Out"
+                  : easeStart ? "In"
+                  : easeEnd ? "Out"
+                  : "Linear";
+        return { easeStart: easeStart, easeEnd: easeEnd, label: label };
+    }
+
+    // ---- graph --------------------------------------------------------------
+    var editor = new GraphEditor(document.getElementById("graph"), {
+        cp: [0.42, 0.0, 0.58, 1.0],
+        onChange: function (cp) {
+            els.readout.textContent =
+                "cubic-bezier(" + cp.map(function (n) { return n.toFixed(2); }).join(", ") + ")";
+            markActivePreset(cp);
+            var ease = computeEase(cp);
+            els.easeType.textContent = ease.label;
+            els.easeType.className = "ease-type" + (ease.label === "Linear" ? " linear" : "");
+        }
+    });
+    editor.onChange(editor.cp, editor.mode);
+
+    // ---- mode tabs ----------------------------------------------------------
+    document.querySelectorAll(".seg-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".seg-btn").forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+            editor.setMode(btn.dataset.mode);
+        });
+    });
+
+    // ---- property checkboxes ------------------------------------------------
+    function propBoxes() {
+        return Array.prototype.slice.call(els.propGrid.querySelectorAll("input[type=checkbox]"));
+    }
+    els.propAll.addEventListener("change", function () {
+        propBoxes().forEach(function (b) { b.checked = els.propAll.checked; });
+    });
+    propBoxes().forEach(function (b) {
+        b.addEventListener("change", function () {
+            els.propAll.checked = propBoxes().every(function (x) { return x.checked; });
+        });
+    });
+    function selectedProps() {
+        return propBoxes().filter(function (b) { return b.checked; })
+            .map(function (b) { return b.dataset.prop; });
+    }
+
+    // ---- presets ------------------------------------------------------------
+    function drawThumb(canvas, cp) {
+        var ctx = canvas.getContext("2d");
+        var dpr = window.devicePixelRatio || 1;
+        var w = canvas.clientWidth || 62, h = 40;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, w, h);
+        var pad = 5;
+        var ease = Bezier.CubicBezier(cp);
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--curve") || "#3b82f6";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for (var i = 0; i <= 40; i++) {
+            var x = i / 40;
+            var y = ease(x);
+            var px = pad + x * (w - pad * 2);
+            var py = h - pad - ((y + 0.3) / 1.6) * (h - pad * 2);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    function renderPresets() {
+        els.presetScroll.innerHTML = "";
+        var list = Presets.BUILTIN.concat(
+            Presets.loadUser().map(function (u, i) { u._userIndex = i; return u; })
+        );
+        list.forEach(function (preset) {
+            var el = document.createElement("div");
+            el.className = "preset";
+            el.dataset.cp = preset.cp.join(",");
+            el.innerHTML =
+                '<canvas></canvas><span>' + escapeHtml(preset.name) + "</span>" +
+                (preset.user ? '<span class="del" title="Delete">×</span>' : "");
+            els.presetScroll.appendChild(el);
+            drawThumb(el.querySelector("canvas"), preset.cp);
+            el.addEventListener("click", function (e) {
+                if (e.target.classList.contains("del")) {
+                    Presets.removeUser(preset._userIndex);
+                    renderPresets();
+                    return;
+                }
+                editor.setCp(preset.cp);
+            });
+        });
+        markActivePreset(editor.cp);
+    }
+
+    function markActivePreset(cp) {
+        var key = cp.map(function (n) { return n.toFixed(2); }).join(",");
+        els.presetScroll.querySelectorAll(".preset").forEach(function (el) {
+            var pk = el.dataset.cp.split(",").map(function (n) { return parseFloat(n).toFixed(2); }).join(",");
+            el.classList.toggle("active", pk === key);
+        });
+    }
+
+    els.savePresetBtn.addEventListener("click", function () {
+        var name = window.prompt("Name this preset:", "My Ease");
+        if (!name) return;
+        Presets.addUser(name.trim().slice(0, 18), editor.cp);
+        renderPresets();
+        toast("Preset saved", "ok");
+    });
+
+    // ---- live preview -------------------------------------------------------
+    var DUR = 1150, HOLD = 350;
+    var t0 = null, dir = 1;
+    function loop(ts) {
+        if (t0 === null) t0 = ts;
+        var elapsed = ts - t0;
+        var cycle = DUR + HOLD;
+        var p = Math.min(elapsed / DUR, 1);
+        var ease = Bezier.CubicBezier(editor.cp);
+        var e = ease(p);
+        previews.position.style.transform = "translateX(" + ((e - 0.5) * 70) + "px)";
+        previews.scale.style.transform = "scale(" + (0.45 + e * 0.7) + ")";
+        previews.rotation.style.transform = "rotate(" + (e * 200) + "deg)";
+        previews.opacity.style.opacity = String(0.12 + e * 0.88);
+        if (elapsed >= cycle) { t0 = ts; }
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    els.replayBtn.addEventListener("click", function () { t0 = null; });
+
+    // ---- apply mode (native ease vs bake) -----------------------------------
+    function applyMethod() {
+        var checked = document.querySelector('input[name="applyMode"]:checked');
+        return checked ? checked.value : "native";
+    }
+    function syncDensVisibility() {
+        els.densWrap.classList.toggle("hidden", applyMethod() !== "bake");
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="applyMode"]'), function (r) {
+        r.addEventListener("change", syncDensVisibility);
+    });
+    syncDensVisibility();
+
+    // ---- apply --------------------------------------------------------------
+    els.applyBtn.addEventListener("click", function () {
+        var props = selectedProps();
+        if (!props.length) { toast("Pick at least one property", "err"); return; }
+        if (!hostReady) { toast("Not running inside Premiere Pro", "err"); return; }
+
+        var method = applyMethod();
+        var density = Math.max(4, Math.min(120, parseInt(els.densInput.value, 10) || 24));
+        var ease = computeEase(editor.cp);
+        var payload = {
+            cp: editor.cp,
+            mode: editor.mode,            // graph view: value | speed
+            method: method,               // native | bake
+            props: props,
+            samples: density,
+            easeStart: ease.easeStart,    // native mode: bezier the first keyframe
+            easeEnd: ease.easeEnd,        // native mode: bezier the last keyframe
+            curve: Bezier.sampleCurve(editor.cp, density)
+        };
+        var payloadStr = JSON.stringify(payload);
+        els.applyBtn.disabled = true;
+        els.applyBtn.textContent = "Applying…";
+        cs.evalScript("MotionEase.apply(" + JSON.stringify(payloadStr) + ")", function (res) {
+            els.applyBtn.disabled = false;
+            els.applyBtn.textContent = "Apply to selection";
+            handleHostResult(res);
+        });
+    });
+
+    function handleHostResult(res) {
+        var r;
+        try { r = JSON.parse(res); } catch (e) { r = null; }
+        if (!r) { toast("Host error: " + String(res).slice(0, 80), "err"); return; }
+        if (r.ok) {
+            toast(r.message || ("Applied to " + r.applied + " properties"), "ok");
+        } else {
+            toast(r.message || "Nothing to apply", "err");
+        }
+    }
+
+    // ---- selection polling --------------------------------------------------
+    function pollSelection() {
+        if (!hostReady) return;
+        cs.evalScript("MotionEase.getSelectionInfo()", function (res) {
+            var r; try { r = JSON.parse(res); } catch (e) { r = null; }
+            if (!r) return;
+            if (r.clips === 0) {
+                els.selectionHint.textContent = "Select a clip with 2+ keyframes, then Apply.";
+            } else {
+                els.selectionHint.textContent =
+                    r.clips + " clip" + (r.clips > 1 ? "s" : "") + " selected" +
+                    (r.sequence ? " · " + r.sequence : "");
+            }
+        });
+    }
+
+    // ---- host status --------------------------------------------------------
+    function initHost() {
+        if (!hostReady) {
+            els.status.className = "status err";
+            els.status.innerHTML = '<span class="dot"></span> Preview mode (no host)';
+            els.selectionHint.textContent = "Open this panel inside Premiere Pro to apply curves.";
+            return;
+        }
+        cs.evalScript("MotionEase.ping()", function (res) {
+            var ok = String(res).indexOf("MotionEase") >= 0;
+            els.status.className = ok ? "status ok" : "status err";
+            els.status.innerHTML = '<span class="dot"></span> ' + (ok ? "Connected" : "Host not responding");
+            if (ok) { pollSelection(); setInterval(pollSelection, 1500); }
+        });
+    }
+
+    // ---- utils --------------------------------------------------------------
+    var toastTimer = null;
+    function toast(msg, kind) {
+        els.toast.textContent = msg;
+        els.toast.className = "toast show " + (kind || "");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { els.toast.className = "toast " + (kind || ""); }, 2600);
+    }
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+        });
+    }
+
+    // ---- boot ---------------------------------------------------------------
+    renderPresets();
+    initHost();
+})();

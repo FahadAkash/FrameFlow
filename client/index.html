@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MotionEase Graph Editor</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div id="app">
+        <!-- Title bar -->
+        <header class="titlebar">
+            <span class="title">MotionEase Graph Editor</span>
+            <span class="status" id="hostStatus"><span class="dot"></span> Connecting…</span>
+        </header>
+
+        <!-- Properties -->
+        <section class="block">
+            <div class="row spread">
+                <h2>Apply to these properties</h2>
+                <label class="check inline">
+                    <input type="checkbox" id="propAll" checked />
+                    <span>All</span>
+                </label>
+            </div>
+            <div class="prop-grid" id="propGrid">
+                <label class="prop-chip"><input type="checkbox" data-prop="position" checked /><span>Position</span></label>
+                <label class="prop-chip"><input type="checkbox" data-prop="scale" checked /><span>Scale</span></label>
+                <label class="prop-chip"><input type="checkbox" data-prop="rotation" checked /><span>Rotation</span></label>
+                <label class="prop-chip"><input type="checkbox" data-prop="opacity" checked /><span>Opacity</span></label>
+            </div>
+            <p class="hint" id="selectionHint">Select a clip with 2+ keyframes, then Apply.</p>
+        </section>
+
+        <!-- Editor -->
+        <section class="block">
+            <div class="row spread">
+                <div class="seg" role="tablist">
+                    <button class="seg-btn active" id="tabValue" data-mode="value">Value</button>
+                    <button class="seg-btn" id="tabSpeed" data-mode="speed">Speed</button>
+                </div>
+                <span class="hint small">Drag the handles. Snaps at 0 and 1, hold Shift for free.</span>
+            </div>
+
+            <div class="graph-wrap">
+                <canvas id="graph" width="560" height="300"></canvas>
+            </div>
+
+            <div class="readout" id="readout">cubic-bezier(0.42, 0.00, 0.58, 1.00)</div>
+        </section>
+
+        <!-- Live preview -->
+        <section class="block">
+            <div class="section-cap">LIVE PREVIEW</div>
+            <div class="preview-row">
+                <div class="preview-cell" data-preview="position"><div class="stage"><div class="dot-box" id="pvPosition"></div></div><span>Position</span></div>
+                <div class="preview-cell" data-preview="scale"><div class="stage"><div class="dot-box" id="pvScale"></div></div><span>Scale</span></div>
+                <div class="preview-cell" data-preview="rotation"><div class="stage"><div class="dot-box" id="pvRotation"></div></div><span>Rotation</span></div>
+                <div class="preview-cell" data-preview="opacity"><div class="stage"><div class="dot-box" id="pvOpacity"></div></div><span>Opacity</span></div>
+                <div class="preview-cell more" id="replayBtn"><div class="stage"><div class="more-badge">▶ replay</div></div><span>Any property</span></div>
+            </div>
+        </section>
+
+        <!-- Presets -->
+        <section class="block">
+            <div class="row spread">
+                <div class="section-cap">PRESETS</div>
+                <button class="ghost-btn" id="savePresetBtn">+ Save current</button>
+            </div>
+            <div class="preset-scroll" id="presetScroll"></div>
+        </section>
+
+        <!-- Apply bar -->
+        <footer class="applybar">
+            <div class="apply-mode">
+                <label class="radio"><input type="radio" name="applyMode" value="native" checked /><span>Ease my keyframes</span><em class="ease-type" id="easeType">In-Out</em></label>
+                <label class="radio"><input type="radio" name="applyMode" value="bake" /><span>Bake exact curve</span></label>
+                <span class="dens" id="densWrap"><input id="densInput" type="number" min="4" max="120" value="24" /> kf</span>
+            </div>
+            <button class="apply-btn" id="applyBtn">Apply to selection</button>
+        </footer>
+
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="js/CSInterface.js"></script>
+    <script src="js/bezier.js"></script>
+    <script src="js/presets.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
