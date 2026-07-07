@@ -246,9 +246,41 @@ var MotionEase = (function () {
         try { param.setInterpolationTypeAtKey(time, KF.LINEAR, false); } catch (e) {}
     }
 
-    // Bake the curve onto ONE segment (the keyframe pair at the playhead) of a
-    // ComponentParam. Reads the segment's endpoint values, clears just that
-    // segment, and rebuilds it from the curve — other segments are untouched.
+    // Build an in-between keyframe TIME at fraction `frac` of the way from rawA to
+    // rawB, matching whatever format getKeys() returned so addKey()/setValueAtKey()
+    // land correctly. Handles plain numbers, Time objects (.ticks or .seconds).
+    function interpTime(rawA, rawB, frac) {
+        if (typeof rawA === "number" && typeof rawB === "number") {
+            return rawA + frac * (rawB - rawA);
+        }
+        var aT = (rawA && rawA.ticks !== undefined && rawA.ticks !== null) ? parseFloat(rawA.ticks) : null;
+        var bT = (rawB && rawB.ticks !== undefined && rawB.ticks !== null) ? parseFloat(rawB.ticks) : null;
+        if (aT !== null && bT !== null && !isNaN(aT) && !isNaN(bT)) {
+            var ticks = Math.round(aT + frac * (bT - aT));
+            try { var T = new Time(); T.ticks = String(ticks); return T; } catch (e) {}
+            return ticks / TICKS_PER_SECOND;
+        }
+        var aS = (rawA && rawA.seconds !== undefined && rawA.seconds !== null) ? rawA.seconds : null;
+        var bS = (rawB && rawB.seconds !== undefined && rawB.seconds !== null) ? rawB.seconds : null;
+        if (aS !== null && bS !== null) {
+            var sec = aS + frac * (bS - aS);
+            try { var T2 = new Time(); T2.seconds = sec; return T2; } catch (e2) {}
+            return sec;
+        }
+        return null;
+    }
+
+    function keyFormat(rawA) {
+        if (typeof rawA === "number") return "num";
+        if (rawA && rawA.ticks !== undefined && rawA.ticks !== null) return "ticks";
+        if (rawA && rawA.seconds !== undefined && rawA.seconds !== null) return "secs";
+        return typeof rawA;
+    }
+
+    // Bake the curve onto ONE segment (the keyframe pair at the playhead).
+    // SAFE: never removes the two endpoint keyframes — it only removes previously
+    // baked interior keys and adds new interior keys between your endpoints. Worst
+    // case (a write fails) your original keyframes are still intact.
     function bakeParam(param, curve, seq) {
         var report = { applied: false, reason: "" };
 
@@ -263,39 +295,48 @@ var MotionEase = (function () {
         var seg = pickSegment(keys, seq);
         if (!seg) { report.reason = "no segment"; return report; }
 
-        var aRaw = seg.a.raw, bRaw = seg.b.raw;   // pass RAW back to Premiere
-        var aNum = seg.a.n, bNum = seg.b.n;       // domain-native numbers for new keys
-        if (bNum <= aNum) { report.reason = "zero-length segment"; return report; }
+        var aRaw = seg.a.raw, bRaw = seg.b.raw;
+        var aNum = seg.a.n, bNum = seg.b.n;
+        var fmt = keyFormat(aRaw);
+        if (aNum === null || bNum === null || isNaN(aNum) || isNaN(bNum) || bNum <= aNum) {
+            report.reason = "unreadable key times [" + fmt + "]"; return report;
+        }
 
-        // read endpoint values BEFORE we clear the segment (use RAW keys)
+        // endpoint values (use RAW keys so reads always hit the right keyframe)
         var vStart, vEnd;
         try { vStart = param.getValueAtKey(aRaw); } catch (e) { report.reason = "read start failed"; return report; }
         try { vEnd = param.getValueAtKey(bRaw); } catch (e) { report.reason = "read end failed"; return report; }
 
-        // clear only this segment, then rebuild from the curve (no UI redraw yet)
-        try { param.removeKeyRange(aNum, bNum, NO_UI); } catch (e) {}
-
-        var span = bNum - aNum;
-        var count = 0;
-        var lastIdx = curve.length - 1;
-        for (var c = 0; c < curve.length; c++) {
-            var pt = curve[c];
-            var time = aNum + pt.t * span;         // stay in the key's own domain
-            var value = lerp(vStart, vEnd, pt.v);
-            var refresh = (c === lastIdx) ? DO_UI : NO_UI; // one redraw at the end
-            try { param.addKey(time); } catch (eAdd) {}
-            try {
-                param.setValueAtKey(time, value, refresh);
-                setKeyLinear(param, time);
-                count++;
-            } catch (eSet) {}
+        // Remove ONLY previously-baked interior keys (strictly between endpoints).
+        // Endpoints are never touched, so keyframes can't be lost.
+        for (var k = 0; k < seg.list.length; k++) {
+            var kn = seg.list[k].n;
+            if (kn > aNum + 1e-6 && kn < bNum - 1e-6) {
+                try { param.removeKey(seg.list[k].raw); } catch (e3) {}
+            }
         }
 
-        report.applied = count > 0;
-        report.reason = report.applied
-            ? (count + " keys" + (seg.multi ? " (segment @ playhead)" : ""))
-            : "write failed";
+        // Add interior curve points between the endpoints (skip t=0 and t=1).
+        var count = 0;
+        for (var c = 0; c < curve.length; c++) {
+            var pt = curve[c];
+            if (pt.t <= 1e-4 || pt.t >= 1 - 1e-4) continue;
+            var time = interpTime(aRaw, bRaw, pt.t);
+            if (time === null) continue;
+            var value = lerp(vStart, vEnd, pt.v);
+            try { param.addKey(time); } catch (eAdd) {}
+            try { param.setValueAtKey(time, value, NO_UI); setKeyLinear(param, time); count++; } catch (eSet) {}
+        }
+
+        // Endpoints: keep their positions, set them linear, and do the single UI
+        // refresh here (also re-asserts their values in case anything shifted).
+        try { param.setValueAtKey(aRaw, vStart, NO_UI); param.setInterpolationTypeAtKey(aRaw, KF.LINEAR, NO_UI); } catch (e4) {}
+        try { param.setValueAtKey(bRaw, vEnd, DO_UI); param.setInterpolationTypeAtKey(bRaw, KF.LINEAR, NO_UI); } catch (e5) {}
+
+        report.applied = true; // endpoints preserved regardless
+        report.reason = count + " interp keys [" + fmt + "]" + (seg.multi ? " (segment @ playhead)" : "");
         report.keys = count;
+        report.fmt = fmt;
         return report;
     }
 
@@ -437,22 +478,26 @@ var MotionEase = (function () {
                 easeEnd: payload.easeEnd === undefined ? true : !!payload.easeEnd
             };
 
+            var diag = "";
             for (var i = 0; i < items.length; i++) {
                 var props = collectProps(items[i], wanted, anyKeyed);
                 for (var p = 0; p < props.length; p++) {
                     var rep = (method === "bake")
                         ? bakeParam(props[p].param, curve, seq)
                         : easeParamNative(props[p].param, easeOpts, seq);
+                    if (!diag && rep.fmt) diag = rep.fmt;
                     result.details.push(props[p].comp + " › " + props[p].name + ": " + rep.reason);
                     if (rep.applied) applied++; else skipped++;
                 }
             }
 
             result.applied = applied;
+            result.diag = diag;
             if (applied > 0) {
                 result.ok = true;
                 result.message = "Eased " + applied + " propert" + (applied > 1 ? "ies" : "y") +
-                    (skipped ? " (" + skipped + " skipped — need 2+ keyframes)" : "");
+                    (skipped ? " (" + skipped + " skipped)" : "") +
+                    (diag ? " · keys:" + diag : "");
             } else {
                 result.message = "No easable properties. Set a start and end keyframe first.";
             }
