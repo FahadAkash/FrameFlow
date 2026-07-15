@@ -73,6 +73,23 @@
                         <button class="undo-btn" id="undoBtn" title="Restore properties to how they were before the last Apply (Ctrl+Z)" disabled>↺ Undo</button>
                         <button class="apply-btn-main" id="applyBtnMain" title="Apply the ease onto the selected clip's properties">Apply Ease</button>
                     </div>
+                    <div class="apply-mode">
+                        <label class="radio" title="Traces your exact curve with a smooth set of keyframes (~16). Best fidelity. Recommended."><input type="radio" name="applyMode" value="smooth" data-density="16" checked /><span>Smooth</span></label>
+                        <label class="radio" title="Traces your curve with only a few keyframes (~6). Cleaner &amp; lighter, still accurate — and it always applies."><input type="radio" name="applyMode" value="minimal" data-density="6" /><span>Minimal</span></label>
+                        <span class="dens" id="densWrap">
+                            <button class="step" id="densMinus" type="button" tabindex="-1" aria-label="Fewer keyframes" title="Fewer keyframes">&minus;</button>
+                            <input id="densInput" type="number" min="3" max="120" value="16" title="How many keyframes to bake — fewer is cleaner, more is smoother" />
+                            <button class="step" id="densPlus" type="button" tabindex="-1" aria-label="More keyframes" title="More keyframes">+</button>
+                            <span class="dens-label" title="keyframes">kf</span>
+                        </span>
+                        <select class="segsel" id="segMode" title="Which pair of YOUR keyframes to bake between. Keyframes FrameFlow baked earlier are not counted as pairs — only the ones you placed by hand.">
+                            <option value="playhead" selected>Pair at playhead</option>
+                            <option value="last">Newest pair</option>
+                            <option value="first">First pair</option>
+                            <option value="all">Every pair</option>
+                        </select>
+                        <span class="mode-caption" id="modeCaption"></span>
+                    </div>
                 </div>
                 <div class="preset-sidebar">
                     <div class="preset-grid" id="presetScroll"></div>
@@ -82,27 +99,6 @@
         </section>
 
         <div class="credit">FrameFlow v1.1 — crafted by <b>Fahad Akash</b></div>
-
-        <!-- Apply bar -->
-        <footer class="applybar">
-            <div class="apply-mode">
-                <label class="radio" title="Traces your exact curve with a smooth set of keyframes (~16). Best fidelity. Recommended."><input type="radio" name="applyMode" value="smooth" data-density="16" checked /><span>Smooth</span></label>
-                <label class="radio" title="Traces your curve with only a few keyframes (~6). Cleaner &amp; lighter, still accurate — and it always applies."><input type="radio" name="applyMode" value="minimal" data-density="6" /><span>Minimal</span></label>
-                <span class="dens" id="densWrap">
-                    <button class="step" id="densMinus" type="button" tabindex="-1" aria-label="Fewer keyframes" title="Fewer keyframes">&minus;</button>
-                    <input id="densInput" type="number" min="3" max="120" value="16" title="How many keyframes to bake — fewer is cleaner, more is smoother" />
-                    <button class="step" id="densPlus" type="button" tabindex="-1" aria-label="More keyframes" title="More keyframes">+</button>
-                    <span class="dens-label" title="keyframes">kf</span>
-                </span>
-                <select class="segsel" id="segMode" title="Which pair of YOUR keyframes to bake between. Keyframes FrameFlow baked earlier are not counted as pairs — only the ones you placed by hand.">
-                    <option value="playhead" selected>Pair at playhead</option>
-                    <option value="last">Newest pair</option>
-                    <option value="first">First pair</option>
-                    <option value="all">Every pair</option>
-                </select>
-                <span class="mode-caption" id="modeCaption"></span>
-            </div>
-        </footer>
 
         <div class="toast" id="toast"></div>
     </div>

@@ -279,15 +279,16 @@ h2 { font-size: 13px; font-weight: 600; }
 .preview-cell.more .stage { border-style: dashed; border-color: var(--accent); }
 .more-badge { font-size: 10px; color: var(--accent); cursor: pointer; }
 
-/* Apply bar */
-.applybar {
-    position: sticky; bottom: 0; z-index: 5;
-    background: var(--bg); border-top: 1px solid var(--stroke);
-    margin: 6px -14px 0; padding: 10px 14px calc(8px + env(safe-area-inset-bottom, 0px));
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+.apply-mode {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 12px;
+    font-size: 11px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    width: 100%;
 }
-.range-opt { font-size: 11px; }
-.apply-mode { display: flex; align-items: center; gap: 10px 12px; font-size: 11px; flex-wrap: wrap; flex: 1 1 200px; min-width: 0; }
 .radio { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: var(--muted); }
 .radio input { accent-color: var(--accent); }
 .radio input:checked + span { color: var(--text); }
