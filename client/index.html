@@ -11,7 +11,7 @@
         <!-- Title bar -->
         <header class="hero">
             <span class="status" id="hostStatus" title="Connection to Premiere Pro"><span class="dot"></span> Connecting…</span>
-            <h1 class="hero-title" title="FrameFlow — an After Effects–style value & speed graph editor for Premiere Pro">FrameFlow</h1>
+            <h1 class="hero-title" title="FrameFlow — an After Effects–style value &amp; speed graph editor for Premiere Pro">FrameFlow</h1>
             <p class="hero-sub">After Effects–style graph editor for Premiere Pro</p>
             <p class="hero-meta">made by <b title="Author">Fahad Akash</b> <span class="ver" title="Version 1.1">v1.1</span></p>
         </header>
@@ -36,8 +36,8 @@
             <p class="hint effects-line" id="effectsLine"></p>
         </section>
 
-        <!-- Editor -->
-        <section class="block">
+        <!-- Editor + Presets (side-by-side) -->
+        <section class="block editor-block">
             <div class="row spread">
                 <div class="seg" role="tablist">
                     <button class="seg-btn active" id="tabValue" data-mode="value" title="Value graph: the property's value over time — the ease shape itself.">Value</button>
@@ -46,11 +46,23 @@
                 <span class="hint small">Drag the handles. Snaps at 0 and 1, hold Shift for free.</span>
             </div>
 
-            <div class="graph-wrap" title="Drag the two colored handles to shape the ease. Hold Shift for free movement past 0–1 (overshoot / anticipation).">
-                <canvas id="graph" width="560" height="300"></canvas>
+            <div class="editor-layout">
+                <div class="editor-main">
+                    <div class="graph-wrap" title="Drag the two colored handles to shape the ease. Hold Shift for free movement past 0–1 (overshoot / anticipation).">
+                        <div class="traffic-dots">
+                            <span class="traffic-dot red"></span>
+                            <span class="traffic-dot yellow"></span>
+                            <span class="traffic-dot green"></span>
+                        </div>
+                        <canvas id="graph" width="560" height="300"></canvas>
+                    </div>
+                    <div class="readout" id="readout" title="The ease as a CSS-style cubic-bezier — the four handle coordinates">cubic-bezier(0.42, 0.00, 0.58, 1.00)</div>
+                </div>
+                <div class="preset-sidebar">
+                    <div class="preset-grid" id="presetScroll"></div>
+                    <button class="ghost-btn save-btn" id="savePresetBtn" title="Save the current curve as a reusable preset">+ Save</button>
+                </div>
             </div>
-
-            <div class="readout" id="readout" title="The ease as a CSS-style cubic-bezier — the four handle coordinates">cubic-bezier(0.42, 0.00, 0.58, 1.00)</div>
         </section>
 
         <!-- Live preview -->
@@ -63,15 +75,6 @@
                 <div class="preview-cell" data-preview="opacity" title="Your ease previewed as a fade"><div class="stage"><div class="dot-box" id="pvOpacity"></div></div><span>Opacity</span></div>
                 <div class="preview-cell more" id="replayBtn" title="Replay the preview loop"><div class="stage"><div class="more-badge">▶ replay</div></div><span>Any property</span></div>
             </div>
-        </section>
-
-        <!-- Presets -->
-        <section class="block">
-            <div class="row spread">
-                <div class="section-cap" title="Click a preset to load its curve. Scroll for more.">PRESETS</div>
-                <button class="ghost-btn" id="savePresetBtn" title="Save the current curve as a reusable preset">+ Save current</button>
-            </div>
-            <div class="preset-scroll" id="presetScroll"></div>
         </section>
 
         <div class="credit">FrameFlow v1.1 — crafted by <b>Fahad Akash</b></div>

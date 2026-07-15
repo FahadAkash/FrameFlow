@@ -95,21 +95,42 @@
     function drawThumb(canvas, cp) {
         var ctx = canvas.getContext("2d");
         var dpr = window.devicePixelRatio || 1;
-        var w = canvas.clientWidth || 62, h = 40;
+        var w = canvas.clientWidth || 60;
+        var h = canvas.clientHeight || w;
+        if (w < 10) w = 60;
+        if (h < 10) h = w;
         canvas.width = w * dpr; canvas.height = h * dpr;
         ctx.scale(dpr, dpr);
         ctx.clearRect(0, 0, w, h);
-        var pad = 5;
+        var pad = 6;
         var ease = Bezier.CubicBezier(cp);
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--curve") || "#3b82f6";
-        ctx.lineWidth = 1.8;
+
+        // helper: map curve coords → canvas pixels
+        function toCanvas(cx, cy) {
+            return {
+                x: pad + cx * (w - pad * 2),
+                y: h - pad - ((cy + 0.3) / 1.6) * (h - pad * 2)
+            };
+        }
+
+        // orange tangent lines (from anchors to control points)
+        var a0 = toCanvas(0, 0), a1 = toCanvas(1, 1);
+        var h1 = toCanvas(cp[0], cp[1]), h2 = toCanvas(cp[2], cp[3]);
+        ctx.strokeStyle = "rgba(232,145,45,0.7)";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(a0.x, a0.y); ctx.lineTo(h1.x, h1.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(h2.x, h2.y); ctx.stroke();
+
+        // white curve
+        ctx.strokeStyle = "rgba(255,255,255,0.9)";
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
         ctx.beginPath();
         for (var i = 0; i <= 40; i++) {
             var x = i / 40;
-            var y = ease(x);
-            var px = pad + x * (w - pad * 2);
-            var py = h - pad - ((y + 0.3) / 1.6) * (h - pad * 2);
-            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            var pt = toCanvas(x, ease(x));
+            if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
         }
         ctx.stroke();
     }
