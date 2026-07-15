@@ -36,6 +36,18 @@
             <p class="hint effects-line" id="effectsLine"></p>
         </section>
 
+        <!-- Live preview -->
+        <section class="block">
+            <div class="section-cap" title="A live loop of your current ease applied to each property type">LIVE PREVIEW</div>
+            <div class="preview-row">
+                <div class="preview-cell" data-preview="position" title="Your ease previewed as movement"><div class="stage"><div class="dot-box" id="pvPosition"></div></div><span>Position</span></div>
+                <div class="preview-cell" data-preview="scale" title="Your ease previewed as scaling"><div class="stage"><div class="dot-box" id="pvScale"></div></div><span>Scale</span></div>
+                <div class="preview-cell" data-preview="rotation" title="Your ease previewed as rotation"><div class="stage"><div class="dot-box" id="pvRotation"></div></div><span>Rotation</span></div>
+                <div class="preview-cell" data-preview="opacity" title="Your ease previewed as a fade"><div class="stage"><div class="dot-box" id="pvOpacity"></div></div><span>Opacity</span></div>
+                <div class="preview-cell more" id="replayBtn" title="Replay the preview loop"><div class="stage"><div class="more-badge">▶ replay</div></div><span>Any property</span></div>
+            </div>
+        </section>
+
         <!-- Editor + Presets (side-by-side) -->
         <section class="block editor-block">
             <div class="row spread">
@@ -65,18 +77,6 @@
                     <div class="preset-grid" id="presetScroll"></div>
                     <button class="ghost-btn save-btn" id="savePresetBtn" title="Save the current curve as a reusable preset">+ Save</button>
                 </div>
-            </div>
-        </section>
-
-        <!-- Live preview -->
-        <section class="block">
-            <div class="section-cap" title="A live loop of your current ease applied to each property type">LIVE PREVIEW</div>
-            <div class="preview-row">
-                <div class="preview-cell" data-preview="position" title="Your ease previewed as movement"><div class="stage"><div class="dot-box" id="pvPosition"></div></div><span>Position</span></div>
-                <div class="preview-cell" data-preview="scale" title="Your ease previewed as scaling"><div class="stage"><div class="dot-box" id="pvScale"></div></div><span>Scale</span></div>
-                <div class="preview-cell" data-preview="rotation" title="Your ease previewed as rotation"><div class="stage"><div class="dot-box" id="pvRotation"></div></div><span>Rotation</span></div>
-                <div class="preview-cell" data-preview="opacity" title="Your ease previewed as a fade"><div class="stage"><div class="dot-box" id="pvOpacity"></div></div><span>Opacity</span></div>
-                <div class="preview-cell more" id="replayBtn" title="Replay the preview loop"><div class="stage"><div class="more-badge">▶ replay</div></div><span>Any property</span></div>
             </div>
         </section>
 
