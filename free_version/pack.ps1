@@ -27,7 +27,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$dist = Join-Path (Split-Path $root -Parent) "dist"
+$dist = Join-Path $root "dist"
 
 # CEP shows the full x.y.z; the panel chrome shows the short "v1.1" form.
 $parts   = $Version.Split('.')
