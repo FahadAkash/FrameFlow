@@ -13,20 +13,8 @@
         readout: document.getElementById("readout"),
         propAll: document.getElementById("propAll"),
         propGrid: document.getElementById("propGrid"),
-        selectionHint: document.getElementById("selectionHint")
-        
-        
+        selectionHint: document.getElementById("selectionHint"),
         applyBtn: document.getElementById("applyBtnMain"),
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         toast: document.getElementById("toast")
     };
 
@@ -87,7 +75,6 @@
     }
 
 
-    });
 
     function performApply() {
         var props = selectedProps();
@@ -179,10 +166,6 @@
             if (ok) {
                 pollSelection();
                 setInterval(pollSelection, 1500);
-                // sync undo button with any history the host still holds
-                cs.evalScript("FrameFlow.undoCount()", function (c) {
-                    setUndoEnabled(parseInt(c, 10) > 0);
-                });
             }
         });
     }
@@ -202,6 +185,5 @@
     }
 
     // ---- boot ---------------------------------------------------------------
-    renderPresets();
     initHost();
 })();
