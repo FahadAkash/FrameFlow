@@ -15,6 +15,7 @@
         propGrid: document.getElementById("propGrid"),
         selectionHint: document.getElementById("selectionHint"),
         applyBtn: document.getElementById("applyBtnMain"),
+        undoBtn: document.getElementById("undoBtn"),
         toast: document.getElementById("toast")
     };
 
@@ -115,7 +116,28 @@
         } else {
             toast(r.message || "Nothing to apply", "err");
         }
+        if (typeof r.canUndo === "number") setUndoEnabled(r.canUndo > 0);
     }
+
+    // ---- undo / restore -----------------------------------------------------
+    function setUndoEnabled(on) { els.undoBtn.disabled = !on; }
+
+    function restoreLast() {
+        if (!hostReady || els.undoBtn.disabled) return;
+        cs.evalScript("FrameFlow.restoreLast()", function (res) {
+            var r; try { r = JSON.parse(res); } catch (e) { r = null; }
+            if (!r) { toast("Restore error", "err"); return; }
+            toast(r.message || (r.ok ? "Restored" : "Nothing to undo"), r.ok ? "ok" : "err");
+            setUndoEnabled(r.remaining > 0);
+        });
+    }
+    els.undoBtn.addEventListener("click", restoreLast);
+    document.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
+            e.preventDefault();
+            restoreLast();
+        }
+    });
 
     // ---- selection polling --------------------------------------------------
     function setDot(prop, state) {
@@ -166,6 +188,9 @@
             if (ok) {
                 pollSelection();
                 setInterval(pollSelection, 1500);
+                cs.evalScript("FrameFlow.undoCount()", function (c) {
+                    setUndoEnabled(parseInt(c, 10) > 0);
+                });
             }
         });
     }

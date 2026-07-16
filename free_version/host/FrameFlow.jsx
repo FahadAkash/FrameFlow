@@ -865,15 +865,15 @@ var FrameFlow = (function () {
         return JSON.stringify(result);
     }
 
-    
+    function undoCount() { return String(undoStack.length); }
 
     return {
         ping: ping,
         getSelectionInfo: getSelectionInfo,
         scanSelection: scanSelection,
         apply: apply,
-        
-        
+        restoreLast: restoreLast,
+        undoCount: undoCount
     };
 })();
 
@@ -882,4 +882,5 @@ function FF_ping() { return FrameFlow.ping(); }
 function FF_getSelectionInfo() { return FrameFlow.getSelectionInfo(); }
 function FF_scanSelection() { return FrameFlow.scanSelection(); }
 function FF_apply(p) { return FrameFlow.apply(p); }
+function FF_restoreLast() { return FrameFlow.restoreLast(); }
 
