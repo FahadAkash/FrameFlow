@@ -1,0 +1,25 @@
+=============================================
+ HOW TO INSTALL: FrameFlow (Premiere Pro)
+=============================================
+
+WINDOWS:
+1. Extract the downloaded ZIP file.
+2. Open the extracted "FrameFlow" folder.
+3. Double-click the "install-windows.bat" file.
+   (If Windows SmartScreen warns you, click "More info" and then "Run anyway").
+4. Restart Premiere Pro.
+5. Open the plugin from: Window > Extensions > FrameFlow
+
+MAC:
+1. Extract the downloaded ZIP file.
+2. Open the extracted "FrameFlow" folder.
+3. Double-click the "install-mac.command" file.
+   (If macOS warns you it cannot be opened, right-click the file and select "Open").
+4. Restart Premiere Pro.
+5. Open the plugin from: Window > Extensions > FrameFlow
+
+=============================================
+ TROUBLESHOOTING
+=============================================
+- If the panel doesn't show up in Premiere Pro, ensure you completely quit and restarted Premiere after running the installer.
+- If you are still having issues, you can install the ZXP file manually using Anastasiy's Extension Manager (https://install.anastasiy.com/) or ZXP Installer (https://zxpinstaller.com/).

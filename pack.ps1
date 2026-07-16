@@ -99,7 +99,7 @@ $payload = Join-Path $stage "FrameFlow"
 New-Item -ItemType Directory -Path $payload -Force | Out-Null
 
 $required = @("CSXS", "client", "host")
-$optional = @(".debug", "install-windows.ps1", "install-mac.command", "README.md")
+$optional = @(".debug", "install-windows.bat", "install-windows.ps1", "install-mac.command", "README.md", "HOW TO INSTALL.txt")
 
 foreach ($item in $required) {
     $src = Join-Path $root $item
